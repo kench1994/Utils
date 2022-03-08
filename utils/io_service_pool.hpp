@@ -16,6 +16,7 @@ namespace utils
 		using io_strand_ptr = std::shared_ptr<boost::asio::io_service::strand>;
 		using work_ptr = std::shared_ptr<boost::asio::io_service::work>;
 		typedef struct tagIOTool{
+			unsigned int uIdx = 0;
 			io_service_ptr spIO;
 			io_strand_ptr spStrand;
 			work_ptr spWork;
@@ -34,6 +35,7 @@ namespace utils
 			for (unsigned int i = 0; i < pool_size; ++i)
 			{
 				auto spIOTool = std::make_shared<IOTool>();
+				spIOTool->uIdx = i;
 				spIOTool->spIO = std::make_shared<boost::asio::io_service>();
 				spIOTool->spWork = std::make_shared<boost::asio::io_service::work>(*spIOTool->spIO);
 				m_vIOTools.push_back(std::move(spIOTool));
@@ -73,11 +75,15 @@ namespace utils
 		{
 			// Explicitly stop all io_services.
 			for(const auto& iter : m_vIOTools)
+			{
+				iter->spWork.reset();
 				iter->spIO->stop();
-
+			}
 			// Wait for all threads in the pool to exit.
 			for(const auto& iter : m_vThread)
 				iter->join();
+
+			m_vThread.clear();
 		}
 
 		static io_service_pool& io_service_pool::instance()
