@@ -88,6 +88,11 @@ namespace utils
 
 		static io_service_pool& io_service_pool::instance()
 		{
+			#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+				;
+			#else
+				  #error This library needs at least a C++11 compliant compiler
+			#endif
 			static io_service_pool s_IOPool;
 			return s_IOPool;
 		}
