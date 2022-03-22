@@ -105,6 +105,7 @@ namespace utils
             {
                 std::atomic_thread_fence(std::memory_order::memory_order_acquire);
                 m_aIndexRoundbin.store(0);
+				uCrtIdx = 0;
             }
 			return m_vIOTools[uCrtIdx]->spIO.get();
 		}
