@@ -10,9 +10,11 @@ namespace utils
 		constexpr uint64_t DayMillseconds = 24 * 60 * 60 * 1000;
 
         /* Returns microseconds since epoch */
-        inline uint64_t timestamp_now()
+        inline uint64_t timestamp_now(bool bMillseconds = true)
         {
-            return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+			if(bMillseconds)
+        		return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         }
 
 		inline uint64_t timestamp_today()
