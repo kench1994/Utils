@@ -5,7 +5,7 @@
 
 namespace utils
 {
-    namespace time_helper
+    namespace date_time
     {
 		constexpr uint64_t DayMillseconds = 24 * 60 * 60 * 1000;
 
