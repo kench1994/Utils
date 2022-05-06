@@ -30,7 +30,7 @@ namespace utils
 			m_Condit.notify_one();
         }
 
-        void push(T&& x)
+        void emplace(T&& x)
         {
             std::lock_guard<std::mutex> lock(m_mtx);
             m_queue.push(std::move(x));
