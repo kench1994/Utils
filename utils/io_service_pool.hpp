@@ -51,9 +51,9 @@ namespace utils
 				auto spThread = std::make_shared<std::thread>([idx, this](){
 					try{
 						m_vIOTools[idx]->spIO->run();
-					}catch(const std::exception& e)	{
-						//fprintf(stderr, "io_service %d crashed,trdID:%x,msg:%s\n",\
-						 idx, std::this_thread::get_id(), e.what());
+					}catch(const std::exception&)	{
+						//fprintf(stderr, "io_service %d crashed,trdID:%x,msg:%s\n",
+						// idx, std::this_thread::get_id(), e.what());
 					}
 				});
 				m_vThread.push_back(std::move(spThread));
@@ -113,9 +113,11 @@ namespace utils
 	private:
 		std::vector<io_tool_ptr> m_vIOTools;
 
-		std::atomic<std::size_t> m_aIndexRoundbin;
+		std::atomic<unsigned int> m_aIndexRoundbin;
 
 		std::vector<std::shared_ptr<std::thread>> m_vThread;
 	};
 
 }
+
+#define IO_EXCUTOR  utils::io_service_pool::instance()
