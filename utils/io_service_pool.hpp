@@ -20,8 +20,8 @@ namespace utils
 			io_service_ptr spIO;
 			io_strand_ptr spStrand;
 			work_ptr spWork;
-		}IOTool;
-		using io_tool_ptr = std::shared_ptr<IOTool>;
+		}Blader;
+		using io_tool_ptr = std::shared_ptr<Blader>;
 	public:
 
 		/// Construct the io_service pool.
@@ -34,10 +34,11 @@ namespace utils
 			// exit until they are explicitly stopped.
 			for (unsigned int i = 0; i < pool_size; ++i)
 			{
-				auto spIOTool = std::make_shared<IOTool>();
+				auto spIOTool = std::make_shared<Blader>();
 				spIOTool->uIdx = i;
 				spIOTool->spIO = std::make_shared<boost::asio::io_service>();
 				spIOTool->spWork = std::make_shared<boost::asio::io_service::work>(*spIOTool->spIO);
+				spIOTool->spStrand = std::make_shared<boost::asio::io_service::strand>(*spIOTool->spIO);
 				m_vIOTools.push_back(std::move(spIOTool));
 			}
 		}
@@ -108,6 +109,18 @@ namespace utils
 				uCrtIdx = 0;
             }
 			return m_vIOTools[uCrtIdx]->spIO.get();
+		}
+
+		Blader *pick_blader() 
+		{
+			unsigned int uCrtIdx = 0;
+			if (m_vIOTools.size() == (uCrtIdx = m_aIndexRoundbin.fetch_add(1, std::memory_order::memory_order_relaxed)))
+			{
+				std::atomic_thread_fence(std::memory_order::memory_order_acquire);
+				m_aIndexRoundbin.store(0);
+				uCrtIdx = 0;
+			}
+			return m_vIOTools[uCrtIdx].get();
 		}
 
 	private:
