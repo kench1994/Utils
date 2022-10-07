@@ -52,7 +52,7 @@ namespace utils
 				auto spThread = std::make_shared<std::thread>([idx, this](){
 					try{
 						m_vIOTools[idx]->spIO->run();
-					}catch(const std::exception&)	{
+					}catch(const std::exception& e)	{
 						//fprintf(stderr, "io_service %d crashed,trdID:%x,msg:%s\n",
 						// idx, std::this_thread::get_id(), e.what());
 					}
