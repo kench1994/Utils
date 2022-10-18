@@ -12,14 +12,19 @@ namespace utils
 	class io_service_pool
 	{
 	private:
-		using io_service_ptr = std::shared_ptr<boost::asio::io_service>;
-		using io_strand_ptr = std::shared_ptr<boost::asio::io_service::strand>;
-		using work_ptr = std::shared_ptr<boost::asio::io_service::work>;
+		using io_service_sptr = std::shared_ptr<boost::asio::io_service>;
+		using io_strand_sptr = std::shared_ptr<boost::asio::io_service::strand>;
+		using work_sptr = std::shared_ptr<boost::asio::io_service::work>;
+		using trd_sptr = std::shared_ptr<std::thread>;
 		typedef struct tagIOTool{
-			unsigned int uIdx = 0;
-			io_service_ptr spIO;
-			io_strand_ptr spStrand;
-			work_ptr spWork;
+			tagIOTool()
+				: uIdx(0), spIO(nullptr), spStrand(nullptr), spWork(nullptr), spThread(nullptr)
+			{}
+			unsigned int uIdx;
+			io_service_sptr spIO;
+			io_strand_sptr spStrand;
+			work_sptr spWork;
+			trd_sptr spThread;
 		}Blader;
 		using io_tool_ptr = std::shared_ptr<Blader>;
 	public:
@@ -43,6 +48,11 @@ namespace utils
 			}
 		}
 
+		~io_service_pool()
+		{
+			stop();
+		}
+
 		/// Run all io_service objects in the pool.
 		void run(bool bBlockMain = false)
 		{
@@ -57,18 +67,18 @@ namespace utils
 						// idx, std::this_thread::get_id(), e.what());
 					}
 				});
-				m_vThread.push_back(std::move(spThread));
+				m_vIOTools[idx]->spThread = std::move(spThread);
 			}
 
 			if (!bBlockMain)
 				return;
 
 			// Wait for all threads in the pool to exit.
-			for(const auto& iter : m_vThread)
-				iter->join();
-
-			// Destroy all threads.
-			m_vThread.clear();
+			for (const auto& iter : m_vIOTools) {
+				iter->spThread->join();
+				iter->spThread.reset();
+				iter->spThread = nullptr;
+			}
 		}
 
 		/// Stop all io_service objects in the pool.
@@ -81,10 +91,11 @@ namespace utils
 				iter->spIO->stop();
 			}
 			// Wait for all threads in the pool to exit.
-			for(const auto& iter : m_vThread)
-				iter->join();
-
-			m_vThread.clear();
+			for (const auto& iter : m_vIOTools) {
+				iter->spThread->join();
+				iter->spThread.reset();
+				iter->spThread = nullptr;
+			}
 		}
 
 		static io_service_pool& io_service_pool::instance()
@@ -127,8 +138,6 @@ namespace utils
 		std::vector<io_tool_ptr> m_vIOTools;
 
 		std::atomic<unsigned int> m_aIndexRoundbin;
-
-		std::vector<std::shared_ptr<std::thread>> m_vThread;
 	};
 
 }
